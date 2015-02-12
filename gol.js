@@ -59,6 +59,39 @@ function updateBoard() {
     }
 }
 
+function getNeighborIdsOf(cell) {
+    var id = parseInt(cell.id);
+    var numCells = boardSize * boardSize;
+
+    var leftId = (id%boardSize)-1 >= 0 ? id-1 : -1;
+    var rightId = (id%boardSize)+1 < boardSize ? id+1 : -1;
+    var topId = (id-boardSize) >= 0 ? id-boardSize : -1;
+    var bottomId = (id+boardSize) < numCells ? id+boardSize : -1;
+    var topLeftId = (leftId >= 0 && (id-boardSize) >= 0) ? id-boardSize-1 : -1;
+    var topRightId = (rightId >= 0 && (id-boardSize) >= 0) ? id-boardSize+1 : -1;
+    var bottomLeftId = (leftId >= 0 && (id+boardSize) < numCells) ? id+boardSize-1 : -1;
+    var bottomRightId = (rightId >= 0 && (id+boardSize) < numCells) ? id+boardSize+1 : -1;
+
+    /* We don't really care about which node is which, but in case we do,
+     * the order returned is clockwise starting from the top left.
+     */
+    return [topLeftId, topId, topRightId,
+            leftId, rightId, 
+            bottomLeftId, bottomId, bottomRightId].filter(function(e) {
+                return e >= 0;
+            });
+}
+
+function cacheNeighbors() {
+    var boardRoot = document.getElementById("board");
+    var cache = [];
+    for (var i = 0; i < boardRoot.children.length; i++) {
+        var child = boardRoot.children[i];
+        cache.push(getNeighborIdsOf(child));
+    }
+    return cache;
+}
+
 document.getElementsByName("redraw")[0].addEventListener("click", function () {
     boardSize = parseInt(document.getElementsByName("boardSize")[0].value);
     drawBoard();
@@ -70,6 +103,7 @@ document.getElementsByName("iterate")[0].addEventListener("click", function () {
 
 var boardSize = 32;
 drawBoard();
+var cachedNeighbors = cacheNeighbors();
 
 /* Game of Life logic */
 function getNeighbors(cell) {
