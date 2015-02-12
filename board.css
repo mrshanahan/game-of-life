@@ -1,0 +1,12 @@
+div#board div {
+    outline: 1px solid;
+    float: left;
+}
+
+#inputs {
+    float: right;
+}
+
+.living {
+    background-color: black;
+}
