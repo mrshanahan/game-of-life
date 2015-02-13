@@ -1,7 +1,8 @@
-const MAX_BOARD_SIDE_PX = 720;
-const LIVE_RANGE_MIN = 2;
-const LIVE_RANGE_MAX = 3;
-const REPRO_MIN = 3;
+"use strict";
+var MAX_BOARD_SIDE_PX = 720;
+var LIVE_RANGE_MIN = 2;
+var LIVE_RANGE_MAX = 3;
+var REPRO_NUM = 3;
 
 /* Draw functions */
 function toPixelString (ival) {
@@ -67,20 +68,21 @@ function getNeighborIdsOf(cell) {
     var rightId = (id%boardSize)+1 < boardSize ? id+1 : -1;
     var topId = (id-boardSize) >= 0 ? id-boardSize : -1;
     var bottomId = (id+boardSize) < numCells ? id+boardSize : -1;
-    var topLeftId = (leftId >= 0 && (id-boardSize) >= 0) ? id-boardSize-1 : -1;
-    var topRightId = (rightId >= 0 && (id-boardSize) >= 0) ? id-boardSize+1 : -1;
-    var bottomLeftId = (leftId >= 0 && (id+boardSize) < numCells) ? id+boardSize-1 : -1;
-    var bottomRightId = (rightId >= 0 && (id+boardSize) < numCells) ? id+boardSize+1 : -1;
+    var topLeftId = (leftId >= 0 && topId >= 0) ? id-boardSize-1 : -1;
+    var topRightId = (rightId >= 0 && topId >= 0) ? id-boardSize+1 : -1;
+    var bottomLeftId = (leftId >= 0 && bottomId >= 0) ? id+boardSize-1 : -1;
+    var bottomRightId = (rightId >= 0 && bottomId >= 0) ? id+boardSize+1 : -1;
 
     /* We don't really care about which node is which, but in case we do,
      * the order returned is clockwise starting from the top left.
      */
-    return [topLeftId, topId, topRightId,
-            leftId, rightId, 
+    return [topLeftId, topId, topRightId, leftId, rightId, 
             bottomLeftId, bottomId, bottomRightId].filter(function(e) {
                 return e >= 0;
             });
 }
+
+var cachedNeighbors;
 
 function cacheNeighbors() {
     var boardRoot = document.getElementById("board");
@@ -89,21 +91,58 @@ function cacheNeighbors() {
         var child = boardRoot.children[i];
         cache.push(getNeighborIdsOf(child));
     }
-    return cache;
+    cachedNeighbors = cache;
 }
 
 document.getElementsByName("redraw")[0].addEventListener("click", function () {
+    if (isGameRunning) {
+        toggleGame(false);
+    }
+    var oldBoardSize = boardSize;
     boardSize = parseInt(document.getElementsByName("boardSize")[0].value);
-    drawBoard();
+    if (boardSize > 0) {
+        drawBoard();
+        if (oldBoardSize != boardSize) {
+            cacheNeighbors();
+        }
+    } else {
+        boardSize = oldBoardSize;
+    }
 });
 
-document.getElementsByName("iterate")[0].addEventListener("click", function () {
-    updateCells();
+var timeVar;
+var isGameRunning = false;
+
+function toggleGame(turnOn) {
+    if (turnOn == true) {
+        var intervalMs = parseInt(document.getElementsByName("intervalMs")[0].value);
+        if (intervalMs > 0) {
+            updateCells();
+            document.getElementsByName("start")[0].disabled = true;
+            document.getElementsByName("stop")[0].disabled = false;
+            timeVar = window.setInterval(updateCells, intervalMs);
+            isGameRunning = true;
+        }
+    } else {
+        isGameRunning = false;
+        clearInterval(timeVar);
+        document.getElementsByName("stop")[0].disabled = true;
+        document.getElementsByName("start")[0].disabled = false;
+    }
+}
+
+document.getElementsByName("stop")[0].disabled = true;
+
+document.getElementsByName("start")[0].addEventListener("click", function () {
+    toggleGame(true);
+});
+document.getElementsByName("stop")[0].addEventListener("click", function () {
+    toggleGame(false);
 });
 
 var boardSize = 32;
 drawBoard();
-var cachedNeighbors = cacheNeighbors();
+cacheNeighbors();
 
 /* Game of Life logic */
 function getNeighbors(cell) {
@@ -133,7 +172,10 @@ function getNeighbors(cell) {
 }
 
 function markCellForUpdate(cell) {
-    var neighbors = getNeighbors(cell);
+    /*var neighbors = getNeighbors(cell);*/
+    var neighbors = cachedNeighbors[parseInt(cell.id)].map(function (i) {
+        return document.getElementById(i);
+    });
     var numNeighbors = neighbors.filter(function (e) {
         return (e != null) && e.classList.contains("living");
     }).length ;
@@ -143,7 +185,7 @@ function markCellForUpdate(cell) {
     {
         cell.classList.add("marked_dead");
     }
-    else if ((cell.className == "") && (numNeighbors >= REPRO_MIN)) {
+    else if ((cell.className == "") && (numNeighbors == REPRO_NUM)) {
         cell.classList.add("marked_live");
     }
 }
