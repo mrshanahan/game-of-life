@@ -4,12 +4,16 @@ var LIVE_RANGE_MIN = 2;
 var LIVE_RANGE_MAX = 3;
 var REPRO_NUM = 3;
 
+var boardSize;
+var timeVar;
+var isGameRunning = false;
+
 /* Draw functions */
 function toPixelString (ival) {
     return ival.toString()+"px";
 }
 
-function toggleState() {
+function toggleCellState() {
     if (this.classList.contains("living")) {
         this.className = "";
     } else {
@@ -17,15 +21,20 @@ function toggleState() {
     }
 }
 
-function drawBoard () {
-    if (boardSize == 0 || boardSize == "") {
+function drawBoard (forceDraw) {
+    var oldBoardSize = boardSize;
+    var newBoardSize = parseInt(document.getElementsByName("boardSize")[0].value);
+    if (forceDraw != true && (newBoardSize == 0 || newBoardSize == "")) {
         return;
     }
-    var numSquares = boardSize * boardSize;
+    else if (forceDraw != true) {
+        boardSize = newBoardSize;
+    }
     var boardRoot = document.getElementById("board");
     var body = document.getElementsByTagName("body")[0];
     var divSizePx = Math.floor(MAX_BOARD_SIDE_PX / boardSize);
     var boardSidePx = divSizePx * boardSize;
+    var numSquares = boardSize * boardSize;
 
     if (boardRoot != null) {
         body.removeChild(boardRoot);
@@ -39,11 +48,18 @@ function drawBoard () {
     var divSizePx = Math.floor(boardSidePx / boardSize);
     for (var i = 0; i < numSquares; i++) {
         var childDiv = document.createElement("div");
-        childDiv.addEventListener("click", toggleState);
+        childDiv.addEventListener("click", toggleCellState);
         childDiv.style.width = toPixelString(divSizePx);
         childDiv.style.height = toPixelString(divSizePx);
         childDiv.id = i;
         boardRoot.appendChild(childDiv);
+    }
+
+    /* We don't want to go through a relatively expensive operation if we get
+     * the same results, so we only cache on change in board size.
+     */
+    if (oldBoardSize != boardSize || forceDraw == true) {
+        cacheNeighbors();
     }
 }
 
@@ -94,28 +110,10 @@ function cacheNeighbors() {
     cachedNeighbors = cache;
 }
 
-document.getElementsByName("redraw")[0].addEventListener("click", function () {
-    if (isGameRunning) {
-        toggleGame(false);
-    }
-    var oldBoardSize = boardSize;
-    boardSize = parseInt(document.getElementsByName("boardSize")[0].value);
-    if (boardSize > 0) {
-        drawBoard();
-        if (oldBoardSize != boardSize) {
-            cacheNeighbors();
-        }
-    } else {
-        boardSize = oldBoardSize;
-    }
-});
-
-var timeVar;
-var isGameRunning = false;
-
 function toggleGame(turnOn) {
     if (turnOn == true) {
-        var intervalMs = parseInt(document.getElementsByName("intervalMs")[0].value);
+        /*var intervalMs = parseInt(document.getElementsByName("intervalMs")[0].value);*/
+        var intervalMs = parseInt(document.getElementById("intervalMs").value);
         if (intervalMs > 0) {
             updateCells();
             document.getElementsByName("start")[0].disabled = true;
@@ -131,18 +129,28 @@ function toggleGame(turnOn) {
     }
 }
 
-document.getElementsByName("stop")[0].disabled = true;
+/* Counter functions */
+function getCounter() {
+    return document.getElementById("counter");
+}
 
-document.getElementsByName("start")[0].addEventListener("click", function () {
-    toggleGame(true);
-});
-document.getElementsByName("stop")[0].addEventListener("click", function () {
-    toggleGame(false);
-});
+function setCounterValueTo(val) {
+    getCounter().textContent = val;
+}
 
-var boardSize = 32;
-drawBoard();
-cacheNeighbors();
+function resetCounterValue() {
+    setCounterValueTo(0);
+}
+
+function incrementCounter() {
+    var counterNode = getCounter();
+    var counterValue = parseInt(counterNode.textContent);
+    if (isNaN(counterValue)) {
+        resetCounterValue();
+    } else {
+        counterNode.textContent = counterValue+1;
+    }
+}
 
 /* Game of Life logic */
 function getNeighbors(cell) {
@@ -198,3 +206,30 @@ function updateCells() {
     }
     updateBoard();
 }
+
+
+/* Setup */
+document.getElementsByName("stop")[0].disabled = true;
+document.getElementsByName("start")[0].addEventListener("click", function () {
+    toggleGame(true);
+});
+document.getElementsByName("stop")[0].addEventListener("click", function () {
+    toggleGame(false);
+});
+document.getElementsByName("redraw")[0].addEventListener("click", function () {
+    if (isGameRunning) {
+        toggleGame(false);
+    }
+    var oldBoardSize = boardSize;
+    if (boardSize > 0) {
+        drawBoard();
+        /*if (oldBoardSize != boardSize) {
+            cacheNeighbors();
+        }*/
+    } else {
+        boardSize = oldBoardSize;
+    }
+});
+
+boardSize = 32;
+drawBoard(true);

@@ -3,7 +3,11 @@ div#board div {
     float: left;
 }
 
-#inputs {
+#sidebar {
+    float: right;
+}
+
+#counter {
     float: right;
 }
 
