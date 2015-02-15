@@ -2,15 +2,15 @@
 
 /* Global constants */
 var MAX_BOARD_SIDE_PX = 720;
-var LIVE_RANGE_MIN = 2;
-var LIVE_RANGE_MAX = 3;
-var REPRO_NUM = 3;
 
 /* Global variables */
 var boardSize;
 var cachedNeighbors;
 var timeVar;
 var isGameRunning = false;
+var liveRangeMin = 2;
+var liveRangeMax = 3;
+var reproThreshold = 3;
 
 /* Draw functions */
 function toPixelString (ival) {
@@ -111,9 +111,20 @@ function cacheNeighbors() {
     cachedNeighbors = cache;
 }
 
+function updateGameConfigGlobals() {
+    var new_liveRangeMin = parseInt(document.getElementById("live-range-min").value);
+    var new_liveRangeMax = parseInt(document.getElementById("live-range-max").value);
+    var new_reproThreshold = parseInt(document.getElementById("repro-threshold").value);
+    if (!(isNaN(new_liveRangeMin) || isNaN(new_liveRangeMax) || isNaN(new_reproThreshold))) {
+        liveRangeMin = new_liveRangeMin;
+        liveRangeMax = new_liveRangeMax;
+        reproThreshold = new_reproThreshold;
+    }
+}
+
 function toggleGame(turnOn) {
     if (turnOn == true) {
-        /*var intervalMs = parseInt(document.getElementsByName("intervalMs")[0].value);*/
+        updateGameConfigGlobals();
         var intervalMs = parseInt(document.getElementById("intervalMs").value);
         if (intervalMs > 0) {
             updateCells();
@@ -162,12 +173,12 @@ function markCellForUpdate(cell) {
         return (e != null) && e.classList.contains("living");
     }).length ;
 
-    if (cell.classList.contains("living") && (numNeighbors < LIVE_RANGE_MIN ||
-                                               numNeighbors > LIVE_RANGE_MAX))
+    if (cell.classList.contains("living") && (numNeighbors < liveRangeMin ||
+                                               numNeighbors > liveRangeMax))
     {
         cell.classList.add("marked_dead");
     }
-    else if ((cell.className == "") && (numNeighbors == REPRO_NUM)) {
+    else if ((cell.className == "") && (numNeighbors == reproThreshold)) {
         cell.classList.add("marked_live");
     }
 }
@@ -196,9 +207,9 @@ document.getElementsByName("redraw")[0].addEventListener("click", function () {
     }
     drawBoard();
 });
-document.getElementById("live_range_min").value = LIVE_RANGE_MIN
-document.getElementById("live_range_max").value = LIVE_RANGE_MAX
-document.getElementById("repro_num").value = REPRO_NUM
+document.getElementById("live-range-min").value = liveRangeMin;
+document.getElementById("live-range-max").value = liveRangeMax;
+document.getElementById("repro-threshold").value = reproThreshold;
 
 boardSize = 32;
 drawBoard(true);

@@ -11,7 +11,7 @@ div#board div {
 /* Sidebar styles */
 #sidebar {
     float: right;
-    margin-right: 2.0em;
+    margin-right: 1em;
 }
 
 #sidebar li {
@@ -19,7 +19,7 @@ div#board div {
     margin-top: 0.5em;
 }
 
-.live_range {
+.live-range {
     width: 2em;
 }
 
