@@ -19,6 +19,10 @@ div#board div {
     margin-top: 0.5em;
 }
 
+.live_range {
+    width: 2em;
+}
+
 #counter {
     float: right;
 }

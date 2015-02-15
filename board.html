@@ -10,10 +10,13 @@
             <ul>
                 <li>Squares per side: <input type="number" name="boardSize" /></li>
                 <li>Iteration period (ms): <input type="number" id="intervalMs" /></li>
+                <li>Neighbors to live: <input class="live_range" id="live_range_min" /> -
+                                       <input class="live_range"id="live_range_max" /></li>
+                <li>Reproduction threshold: <input id="repro_num" />
+                <li>Generations: <div id="counter"></div></li>
                 <li><button type="button" name="redraw">Redraw</button>
                 <button type="button" name="start">Start</button>
                 <button type="button" name="stop">Stop</button></li>
-                <li>Generations: <div id="counter"></div></li>
             </ul>
         </div>
         <script type="text/javascript" src="./gol.js"></script>
