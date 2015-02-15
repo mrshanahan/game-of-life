@@ -25,11 +25,13 @@ function toggleCellState() {
     }
 }
 
-function drawBoard (ignoreInputIfInvalid) {
+function drawBoard() {
     var oldBoardSize = boardSize;
     var newBoardSize = parseInt(document.getElementsByName("boardSize")[0].value);
-    if (ignoreInputIfInvalid != true && isNaN(newBoardSize))
-        return;
+    if (!isNaN(newBoardSize) && newBoardSize > 0) {
+        boardSize = newBoardSize;
+    }
+
     boardSize = isNaN(newBoardSize) ? boardSize : newBoardSize;
     var boardRoot = document.getElementById("board");
     var body = document.getElementsByTagName("body")[0];
@@ -37,9 +39,8 @@ function drawBoard (ignoreInputIfInvalid) {
     var boardSidePx = divSizePx * boardSize;
     var numSquares = boardSize * boardSize;
 
-    if (boardRoot != null) {
+    if (boardRoot != null)
         body.removeChild(boardRoot);
-    }
     boardRoot = document.createElement("div");
     boardRoot.id = "board";
     body.appendChild(boardRoot);
@@ -61,7 +62,7 @@ function drawBoard (ignoreInputIfInvalid) {
     /* We don't want to go through a relatively expensive operation if we get
      * the same results, so we only cache on change in board size.
      */
-    if ((ignoreInputIfInvalid == true && isNaN(newBoardSize)) || oldBoardSize != boardSize) {
+    if (oldBoardSize != boardSize) {
         cacheNeighbors();
     }
 }
@@ -212,4 +213,5 @@ document.getElementById("live-range-max").value = liveRangeMax;
 document.getElementById("repro-threshold").value = reproThreshold;
 
 boardSize = 32;
-drawBoard(true);
+drawBoard();
+cacheNeighbors(); /* This won't happen on the first draw */
