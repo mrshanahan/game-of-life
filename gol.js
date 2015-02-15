@@ -196,6 +196,9 @@ document.getElementsByName("redraw")[0].addEventListener("click", function () {
     }
     drawBoard();
 });
+document.getElementById("live_range_min").value = LIVE_RANGE_MIN
+document.getElementById("live_range_max").value = LIVE_RANGE_MAX
+document.getElementById("repro_num").value = REPRO_NUM
 
 boardSize = 32;
 drawBoard(true);
