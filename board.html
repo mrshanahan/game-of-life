@@ -5,18 +5,17 @@
         <link rel="stylesheet" type="text/css" href="./board.css" />
     </head>
     <body>
-        <div id="sidebar">
-            <form>
-                Squares per side: <input type="number" name="boardSize" /><br>
-                Iteration period (ms): <input type="number" id="intervalMs" /><br>
-                <button type="button" name="redraw">Redraw</button>
-                <button type="button" name="start">Start</button>
-                <button type="button" name="stop">Stop</button>
-            </form>
-            <br>
-            Generations: <div id="counter"></div>
-        </div>
         <div id="board"></div>
+        <div id="sidebar">
+            <ul>
+                <li>Squares per side: <input type="number" name="boardSize" /></li>
+                <li>Iteration period (ms): <input type="number" id="intervalMs" /></li>
+                <li><button type="button" name="redraw">Redraw</button>
+                <button type="button" name="start">Start</button>
+                <button type="button" name="stop">Stop</button></li>
+                <li>Generations: <div id="counter"></div></li>
+            </ul>
+        </div>
         <script type="text/javascript" src="./gol.js"></script>
     </body>
 </html>

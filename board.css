@@ -1,16 +1,24 @@
+/* Board styles */
 div#board div {
     outline: 1px solid;
     float: left;
 }
 
+.living {
+    background-color: black;
+}
+
+/* Sidebar styles */
 #sidebar {
     float: right;
+    margin-right: 2.0em;
+}
+
+#sidebar li {
+    list-style: none;
+    margin-top: 0.5em;
 }
 
 #counter {
     float: right;
-}
-
-.living {
-    background-color: black;
 }

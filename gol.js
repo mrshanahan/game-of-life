@@ -1,10 +1,14 @@
 "use strict";
+
+/* Global constants */
 var MAX_BOARD_SIDE_PX = 720;
 var LIVE_RANGE_MIN = 2;
 var LIVE_RANGE_MAX = 3;
 var REPRO_NUM = 3;
 
+/* Global variables */
 var boardSize;
+var cachedNeighbors;
 var timeVar;
 var isGameRunning = false;
 
@@ -21,15 +25,12 @@ function toggleCellState() {
     }
 }
 
-function drawBoard (forceDraw) {
+function drawBoard (ignoreInputIfInvalid) {
     var oldBoardSize = boardSize;
     var newBoardSize = parseInt(document.getElementsByName("boardSize")[0].value);
-    if (forceDraw != true && (newBoardSize == 0 || newBoardSize == "")) {
+    if (ignoreInputIfInvalid != true && isNaN(newBoardSize))
         return;
-    }
-    else if (forceDraw != true) {
-        boardSize = newBoardSize;
-    }
+    boardSize = isNaN(newBoardSize) ? boardSize : newBoardSize;
     var boardRoot = document.getElementById("board");
     var body = document.getElementsByTagName("body")[0];
     var divSizePx = Math.floor(MAX_BOARD_SIDE_PX / boardSize);
@@ -46,19 +47,21 @@ function drawBoard (forceDraw) {
     boardRoot.style.height = toPixelString(boardSidePx);
 
     var divSizePx = Math.floor(boardSidePx / boardSize);
+    var divSizePxString = toPixelString(divSizePx);
     for (var i = 0; i < numSquares; i++) {
         var childDiv = document.createElement("div");
         childDiv.addEventListener("click", toggleCellState);
-        childDiv.style.width = toPixelString(divSizePx);
-        childDiv.style.height = toPixelString(divSizePx);
+        childDiv.style.width = divSizePxString;
+        childDiv.style.height = divSizePxString;
         childDiv.id = i;
         boardRoot.appendChild(childDiv);
     }
+    resetCounter();
 
     /* We don't want to go through a relatively expensive operation if we get
      * the same results, so we only cache on change in board size.
      */
-    if (oldBoardSize != boardSize || forceDraw == true) {
+    if ((ignoreInputIfInvalid == true && isNaN(newBoardSize)) || oldBoardSize != boardSize) {
         cacheNeighbors();
     }
 }
@@ -98,8 +101,6 @@ function getNeighborIdsOf(cell) {
             });
 }
 
-var cachedNeighbors;
-
 function cacheNeighbors() {
     var boardRoot = document.getElementById("board");
     var cache = [];
@@ -138,7 +139,7 @@ function setCounterValueTo(val) {
     getCounter().textContent = val;
 }
 
-function resetCounterValue() {
+function resetCounter() {
     setCounterValueTo(0);
 }
 
@@ -146,41 +147,14 @@ function incrementCounter() {
     var counterNode = getCounter();
     var counterValue = parseInt(counterNode.textContent);
     if (isNaN(counterValue)) {
-        resetCounterValue();
+        resetCounter();
     } else {
         counterNode.textContent = counterValue+1;
     }
 }
 
 /* Game of Life logic */
-function getNeighbors(cell) {
-    var id = parseInt(cell.id);
-    var numCells = boardSize * boardSize;
-
-    var leftNode = (id%boardSize)-1 >= 0 ? document.getElementById(id-1) : null;
-    var rightNode = (id%boardSize)+1 < boardSize ? document.getElementById(id+1) : null;
-    var topNode = (id-boardSize) >= 0 ? document.getElementById(id-boardSize) : null;
-    var bottomNode = (id+boardSize) < numCells 
-        ? document.getElementById(id+boardSize) : null;
-    var topLeftNode = (leftNode != null && (id-boardSize) >= 0)
-        ? document.getElementById(id-boardSize-1) : null;
-    var topRightNode = (rightNode != null && (id-boardSize) >= 0)
-        ? document.getElementById(id-boardSize+1) : null;
-    var bottomLeftNode = (leftNode != null && (id+boardSize) < numCells)
-        ? document.getElementById(id+boardSize-1) : null;
-    var bottomRightNode = (rightNode != null && (id+boardSize) < numCells)
-        ? document.getElementById(id+boardSize+1) : null;
-
-    /* We don't really care about which node is which, but in case we do,
-     * the order returned is clockwise starting from the top left.
-     */
-    return [topLeftNode, topNode, topRightNode, 
-            leftNode, rightNode, 
-            bottomLeftNode, bottomNode, bottomRightNode];
-}
-
 function markCellForUpdate(cell) {
-    /*var neighbors = getNeighbors(cell);*/
     var neighbors = cachedNeighbors[parseInt(cell.id)].map(function (i) {
         return document.getElementById(i);
     });
@@ -205,8 +179,8 @@ function updateCells() {
         markCellForUpdate(child);
     }
     updateBoard();
+    incrementCounter();
 }
-
 
 /* Setup */
 document.getElementsByName("stop")[0].disabled = true;
@@ -220,15 +194,7 @@ document.getElementsByName("redraw")[0].addEventListener("click", function () {
     if (isGameRunning) {
         toggleGame(false);
     }
-    var oldBoardSize = boardSize;
-    if (boardSize > 0) {
-        drawBoard();
-        /*if (oldBoardSize != boardSize) {
-            cacheNeighbors();
-        }*/
-    } else {
-        boardSize = oldBoardSize;
-    }
+    drawBoard();
 });
 
 boardSize = 32;
